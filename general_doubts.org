@@ -1,0 +1,31 @@
+* Tasks
+* TODO What is Sound Server?
+* TODO how much memory the calenders/alarms and others things take on our mobiles, because it seems like its always listening for the time to get signal < event based > to to something. ( like notify or something >
+* TODO how clocks work in laptops/ other devices even after battery is gone.
+* TODO what is pkg-config
+* TODO what is GST_API in gstreamer header files
+* DONE what is headless?
+  CLOSED: [2018-09-06 Thu 16:16]
+ 
+
+*** What is headless?
+
+    "Headless" in this context simply means without a graphical display. ( i.e.: Console based.)
+    Many servers are "headless" and are administered over *SSH* for example.
+    -- from [[https://stackoverflow.com/questions/4647719/what-does-headless-mean][stackoverflow question]].
+    
+    *Headless software* (e.g. "headless java" or "headless Linux" ) is software capable of working on a device
+    without a *graphical user interface*. Such software receives inputs and provides output through other interfaces
+    like network or *serial port* is common on servers and *embedded devices*.
+    -- from [[https://en.wikipedia.org/wiki/Headless_software][wikipedia]]
+*** DONE what is serial port?
+    CLOSED: [2018-09-06 Thu 16:25]
+
+    + A serial port is an interface that allows a PC to transmit or receive data one bit at a time.
+      It is one of the oldest types of interfaces and at one time was commonly used to connect printers and 
+      external modems to a PC. Modern serial ports are used in scientific instruments, shop till systems such as
+      cash registers and applications like industrial machinery systems.
+
+      Compared to a parallel port, the data transfer rate of a serial port is slower.
+      -- from [[https://www.techopedia.com/definition/3665/serial-port][techopedia]]
+

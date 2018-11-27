@@ -1,0 +1,51 @@
+Building Crunch Transcoder Docker Image.
+- where is the image located/saved when we run ./run.sh from serverbuildscript branch
+- and what kind of image is this?
+- do we have it in our dockerhub?
+- why we have to checkout to transcoder branch and use the run.sh from there?
+- INFO: by default it build the transcoder image from the master branch of crunchtranscoder-server.git branch.
+- INFO: if you want to customize the branch or tag name run ./run.sh -g <branch-name> -t <tag>.
+
+(( what is the significance of git tag ))
+
+Building Crunchcast API Server and Media Engine Docker Image.
+- clone media server repository using git  clone https://bitbucket.org/crunchllc/mediaserver-2.0.git
+- to make a new release number execute ./release.sh ( use --skiptest if you wantto skip unit testing)
+- Execute ./install.sh <crunchtranscoder-version-number>
+
+- ./release.sh not working 
+- ./install.sh not working
+
+CrunchCast REST APIs
+Resources - resources means the object on which we want to operate.
+
+Queues
+
+
+Jobs
+- currently support 3 types of adaptive bitrate streaming protocols.
+ - HLS(HTTP Live Streaming),
+ - SS(Smooth Streaming),- Microsoft 
+ - MPEG-DASH ( 
+
+ each job is atomic in nature, i.e. either all the streaming have been transcoded or none, So if some job is stopped while transcoding is in progress then job needs to be restarted? - Scope to check the functionality.
+
+ type : permissible values are ULB and FBCP.
+ target_percentage_reduction - Values lies between [10 to 51) , default value is 50.
+ psnr_threshold
+
+
+
+Playlist
+- Playlist refers to csv file storing the data of SVOD(Subscription video on demand) confirming to RFC-4180. Each playlist can contain several videos.
+For each video oone job will be created. When all jobs of a playlist has been completed.  
+
+User
+
+- What is secret key?
+  
+- What is Zookeeper and Mesos/Chronos?
+
+-- suppose a 2GB, 1MB , and 500 MB files are submitted and those 3 will be processed by 3 slaves as per the algoritm now?
+-- Is it possible to do it in a distributed fashion for larger videos( like 2GB) like what IDM( internet download manager does).
+I mean the transcode the image in such a way that it can be rearranged in later point of time.

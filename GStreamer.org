@@ -1,0 +1,234 @@
+* Tasks
+** DONE start a new org file for Gstreamer
+   CLOSED: [2018-09-06 Thu 12:45]
+** TODO Introduction
+** TODO Outline document
+   SCHEDULED: <2018-09-10 Mon>
+** DONE outline some common questions.
+   CLOSED: [2018-09-06 Thu 15:00]
+
+* Common Questions
+** General
+*** Is GStreamer a media player?
+
+No, GStreamer is a developement framework for creating applications like media players,
+video editors, streaming media broadcasters and so on. That said , very good media players
+can easily be built on top of GStreamer especially when using the high-level APIs provided
+such as *GstPlayer* or *playbin* and *playbin3* elements.
+
+*** Why is GStreamer writtein in C? Why not C++/Objective-C/..?
+
+We like C. Aside from "personal preference" , there are a number of technial reasons why
+C is nice to this projet
+   * C is extremely portable
+   * C is fast.
+   * It is easy to make language bindings for libraries written in C.
+   * The *GObject* object system provided by *GLib* implements objects in C, in a portable and
+     powerful way. This library provides for introspection and runtime dynamic typing. It is a
+     full OO system , but without the syntactic sugar. If you want sugar ,
+     take a look at [[http://wiki.gnome.org/Projects/Vala][Vala]].
+   * Use of C integrates nicely with *Gtk+* and *GNOME*. Some people like this a lot, but
+     neither Gtk+ nor GNOME are required by GStreamer.
+
+There are also historical reasons, When GStreamer was started , C++ was free and open source , 
+C++ compilers were not as stable and mature as they are today , and there was the desire to 
+provide a certain degree of *API* and *ABI* stability.
+
+*** What kind of applications have been written in GStreamer?
+
+GStreamer has been designed from the start to be general-purpose multimedia framework that can be
+used to write all kinds of multimedia applications.
+
+There are a huge number of media playback application of course, but audio and video capture applications
+that record to file or live stream the captured content. Audio CD and DVD backup applications. Media 
+format conversion and transcoding tools. Streaming servers, both for small embedded devices where resource
+usage needs to be tightly controlled, and for servers where scalability is key.
+And of course audio and video editing applications.
+
+For a list of projects, look at the [[https://gstreamer.freedesktop.org/apps][application list]] on the GStreamer project website.
+
+*** Does GStreamer support the format of my media files?
+
+GStreamer is a plugin based and was designed to be extensible from the start, so it can pretty much 
+support any media format provided suitable plugins are available.
+
+It features *demuxers*, *parsers* and *decoders* for all common media formats and hundreds of uncommon ones.
+If you have trouble playing back a file please first make sure you have all the required plug-ins installed.
+
+*** TODO understand demuxers, parsers and decoders.
+
+GStreamer aims to support every format imaginable, but that doesn't mean that developers have 
+managed to achieve that aim yet. If a GSteamer enabled application doesn't play back your files.
+you can report it to [[https://bugzilla.gnome.org][filing an enhancement request bug]] for that format. If you have it, please provide:
+    + links to other players, preferably Open Source and working on Unix
+    + links to explanations of the format.
+    + ways to obtain mediafiles in that format to test.
+
+*** What are the exact licensing terms for GStreamer and its plugins?
+
+All of GStreamer, including our own plugin code, is licensed under the [[https://www.gnu.org/licenses/lgpl-2.1.html][GNU LGPL 2.1]] license.
+Some of the libraries used for some of the plugins are however under GPL, which means that those
+plugins can not be used by a non-GPL-compatible application. Those are few and far between though
+and there are usually non-GPL alternatives available for those GPL libraries.
+
+As a general rule, GStreamer aims at using only *LGPL* or *BSD* licensed libraries and only use
+*GPL* or proprietary libraries when no good LGPL or BSD aternatives are available.
+
+You can see the effective license of a plugin as the *License* field in the output of the 
+following command:
+
+#+BEGIN_SRC shell
+gst-inspect-1.0 <plugin name> | grep -i license
+#+END_SRC
+
+sample example 
+#+BEGIN_SRC shell
+gst-inspect-1.0 videocrop | grep -i license
+#+END_SRC
+
+#+RESULTS:
+: License            LGPL
+
+*** Is GStreamer a sound server?
+
+No, GStreamer is not a sound server. GStreamer does, however have plugins supporting most of the
+major sound servers available today, including *pulseaudio*, *Jack* and others.
+
+*** TODO what is sound server?
+
+*** Is GStreamer available for platform other than Linux?
+
+Yes , GStreamer is a cross-platform multimedia framework that works on all major 
+operating systems, including but not limited to Linux, Android , iOS, macOS, Windows, 
+and *BSD, and there are official SDK binary packages for Android, iOS , macOS and Windows
+made available with every GStreamer release.
+
+*** What is GStreamer's relationship with the GNOME community?
+GStreamer is and independent project , but it does traditionally have a close relationship
+with the GNOME community. Many of hackers consider themselves also to be members of the
+GNOME commnunity. GStreamer is officially bundled with the GNOME desktop, as lots of GNOME 
+applications are using it . This does not exclude use of GStreamer by other communities at all, of course.
+
+*** What GStreamer's relationship with the KDE community?
+
+The GStreamer community wants to have as good a relationship as possible with *KDE*, and we 
+hope that someday KDE decides to adopt GStreamer as their multimedia platform.
+There have been contacts from time to time between the GStreamer community and KDE and GStreamer
+is used by various *KDE* and *Qt* multimedia *APIs*, Also, some of the KDE hackers have
+created Qt bindings of GStreamer, made a simple video player and using it in some audio players
+(*Juk* and *AmaroK*)
+
+*** TODO understand KDE community and Qt
+
+*** I'm considering adding GStreamer output to my application..
+
+That doesn't really make sense. GStreamer is not a sound server ,so you don't output directly to
+GStreamer, and it's not an intermediate API between audio data and different kinds of audio sinks.
+It is a fundamental design decision to use GStreamer in your application; there are no easy ways of 
+somehow 'transfering' data from your app to GStreamer ( well, there are of course, but they would 
+be reserved for special use cases). Instead, your application would have to use or implement a number
+of GStreamer elements, string them together, and tell them to run. In that manner the
+data would all be internal to the GStreamer pipeline.
+
+That said, it is possible to write a plugin specific to your app that can get the audio or video data.
+
+
+** Dependencies
+*** Why are there so many dependencies?
+
+Making a full-featured media framework is a huge undertaking in itself.
+By using the work done by others, we both reduce the amount of redundant work being done and leave
+ourselves free to work on the architecture itself instead of working on the low-level stuff. We would
+be stupid not to reuse the code others have written.
+
+However, do realize that in no way you are forced to have all dependencies installed. None of the core
+developers has all of them installed. GStreamer has only a few mandatory dependencies:
+*GLib 2.0*, *liborc* , and very common stuff like *glibc* , a C compiler, and so on. All other dependencies are optional.
+
+In closing , let's rephrase the question to "Why are you giving me so many choices and such a rich environment?"
+
+*** Is GStreamer X11 independent? Can it be used headless?
+
+Yes, we have no hard dependency on *X11* or any other *windowing system* in any of our modules.
+There are many *GStreamer applications* that run fine without any need for display servers or windowing systems,
+for example *streaming servers*, *transcoding applications* , or *audio applications* that don't output
+any video. Other applications output video to a *framebuffer*, *custom-made hardware sinks*, or via *wayland*.
+
+*** TODO what is framebuffer, custom-made hardware sink, wayland.
+
+*** TODO what is windowing system, display servers ?
+
+*** What is GStreamer's position on efforts such as LADSPA or LV2?
+
+GStreamer actively supports such efforts, and in the case of [[https://en.wikipedia.org/wiki/LADSPA][LADSPA]] or [[lv2plug.in][LV2]] we already have wrapper plugins.
+These wrapper plug-ins detect the LDASPA/LV2 plugins present on your system at 
+run-time and make them available as GStreamer elements.
+
+*** TODO what is LADSPA, LV2, and wrapper in general.
+
+*** TODO is wrapper is associated with decorators only? what are scenarios where we use wrappers?
+
+
+*** Does GStreamer support MIDI?
+**** what is MIDI?
+     MIDI is short for Musical Instrument Digital Interface. It's a language that allows computers, 
+     musical instruments and other hardware to communicate. A MIDI setup 
+     includes the interface, the the language that MIDI data is transmitted in , 
+     and the connection needed to communicate between hardware.
+     -- from [[https://blog.landr.com/what-is-midi/][midi info]]
+
+***
+
+There is some rudimentary *MIDI* support in *GStreamer*, but it's not complete yet.
+
+The GStreamer architecture should be able to support the needs of MIDI applications very well,
+a full implementation is still missing, however. If you are a developer interested in adding 
+MIDI support to GStreamer please get in touch, we would definitely be interested in that.
+
+As for what exists today: the *alsamidisrc* element can be used to fetch *ALSA MIDI* sequencer
+events and makes them available to elements that understand the *audio/x-midi-events* format.
+
+MIDI playback is provided by plugins such as *midiparse*, *fluiddec*, *wildmidi* and *timidity*.
+
+*** Does GStreamer depend on GNOME or GTK+?
+No, it's just that many GStreamer applications, including some of our sample ones, happen to be 
+GNOME or GTK+ applications, but there are just as many using the *Qt* toolkit or written for Mac
+OS/X, Windows, Android or iOS.
+
+We aim to provide an API that is toolkit-agnostic, so that GStreamer can be used from any toolkit,
+desktop environment or operating system.
+
+
+** Using GStreamer
+*** Ok, I've installed GStreamer.What can I do next?
+First of all , verify that you have a working installation and that you can inspect plugins by typing
+#+BEGIN_SRC shell
+gst-inspect-1.0 fakesrc
+#+END_SRC
+
+This should print out a bunch of information about this particular element. If this tells you that there is
+"no such element or plugin", you haven't installed GStreamer correctly. Please check [[ https://gstreamer.freedesktop.org/documentation/frequently-asked-questions/][how to get GStreamer]] If this
+fails with any other message, we would appreciate a [[nothing.com][bug report]].
+
+It's time to try out a few things. Start with gst-launch and two plug-ins that two plug-ins that you really should
+have: *fakesrc* and *fakesink*. They do nothing except pass empty buffers. Type this at the command-line:
+
+#+BEGIN_SRC shell
+gst-launch-1.0 -v fakesrc silent=false num-buffers=3 ! fakesink silent=false
+#+END_SRC
+
+To get a test_video displayed, try:
+#+BEGIN_SRC shell
+gst-launch-1.0 videotestsrc ! videoconvert ! autovideosink
+#+END_SRC
+
+If *autovideosink* doesn't work, try an element that's specific for your operation system and windowing system,
+such as *ximagesink* or *glimagesink* or ( on windows ) *d3dvideosink*.
+
+
+*** Can my system play sound through GStreamer?
+You can test this by trying to play a *sine tone*. For this, you need to link the audiotestsrc element to an
+output element that matches your hardware. A ( non-complete) list of output plug-ins for audio is
+    + *pulsesink* for Pulseaudio output
+    + *alsasink* for ALSA output
+     

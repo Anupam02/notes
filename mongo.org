@@ -1,0 +1,277 @@
+
+*** The mongo shell runs JavaScript.
+**** There are some global commands you can execute, like *help* or *exit*. 
+Commands that you execute against the current database are executed against the db object, such as *db.help()* or *db.stats()*.
+Commands that you execute against a specific collection, are executed against the *db.COLLECTION_NAME* object , such as *db.unicorns.help()*
+or *db.unicorns.count()*.
+
+Go ahead and enter db.help(), you'll get a list of commands  that you can execute agains the db object.
+
+Note: A small side note: Because this is a JavaScript shell, if you execute a method and omit the parentheses (), you'll see the method body 
+rather than executing the method. I only mention it so that the first time you do it and get a response that starts with function(...) { you 
+won't be surprised. For example, if you enter db.help (without the parentheses), you'wll see the internal implementation of the help method.
+
+*** use lern
+First we'll use the global use helper to switch databases, so go ahead and enter use learn. It doesn't matter that the database doesn't 
+really exist yet. The first collection that we create will also create the actual learn database. Now that you are inside a database, you 
+can start issuing database commands , like db.getCollectionNames(). If you do so, you should get an empty array([]). Since collections are 
+schema-less, we don't explicitly need to create them. We simply insert a document into a new collection. To do so, use the *insert* command, 
+supplying it with the document to insert: 
+
+#+NAME adding collection
+#+BEGIN_SRC javascript
+db.unicorns.insert({name:'Sahil', gender:'m', weight: 75 })
+#+END_SRC
+
+The above line is executing insert against unicorn collection, passing it a single parameter . Internally MongoDB uses a binary serialized
+json format called BSON. Externally, this means that we use JSON a lot, as is the case with our parameters. If we execute db.getCollectionNames() 
+now, we'll see a unicorn collection.
+
+#+BEGIN_SRC mongo
+db.unicorn.find()
+#+END_SRC
+
+
+Now that we have data, we can master selectors. {field: value} is used to find any documents where field is equal to value.
+{filed1: value1, field2: value2 } is how we do an and statement. 
+The special $lt, $lte, $gt, $gte and $ne are used for less than, less than or equal, greater than, greater than or equal and not equal operstions.
+For example, to get all male unicorns that weigh more than 700 pounds, we could do:
+
+#+BEGIN_SRC javascript
+db.unicorns.find({gender: 'm',
+  weight: {$gt: 700 }})
+
+// or ( not quite the same thing, but for 
+// demonstration purposes)
+db.unicorns.find({gender: {$ne: 'f'},
+  weight: {$gte: 701}})
+#+END_SRC
+
+The *$exists* operator is used for matching the presence or absence of a field, for example:
+#+BEGIN_SRC javascript
+db.unicorns.find({
+    vampires: {$exists: false}})
+#+END_SRC
+
+The *$in* operator is used for matching one of several values that we pass as an array, for example:
+#+BEGIN_SRC javascript
+db.unicorns.find({
+    loves: {$in:['apple', 'orange']}})
+#+END_SRC
+
+This returns any unicorn who loves 'apple' or 'orange'
+
+If we want to *OR* rather than *AND* several conditions on different fields, we use the *$or* operator and assign to it an array of selectors
+we want or'd:
+
+#+BEGIN_SRC: 
+db.unicorns.find({gender: 'f',
+  $or: [{loves:'apple'}, {weight: {$lt: 500}}]})
+#+END_SRC
+
+The above will return all female unicorns which either love apples or weigh less than 500 pounds.
+
+There's something pretty neat going on in our last two examples. You might have already noticed, but the loves field is an array.
+MongoDB supports arrays as first class objects. This is an incredibly handy feature. Once you start using it, you wonder how you
+ever lived without it. What's more interesting is how easy selecting based on an array value is: *{loves: 'watermelon'}* will 
+return any document where watermelon is value of loves.
+
+### Update
+#### Update: Replace Versus $set
+In its simplest form, update takes two parameters: the selector( where ) to use and what updates to apply to fields. If Roooooodles
+had gained a bit of weight, you might expect that we should execute:
+
+#+BEGIN_SRC
+db.unicorns.update({name: 'Roooooodles'},
+    {weight: 590})
+#+END_SRC
+
+You should discover the first surprise of update. No document is found because the second parameter we supplied didn't have any update
+operators, and therefore it was used to *replace* the original document. In other words, the update found a document by name and replaced
+the entire document with the new document( the second parameter).
+There is no equivalent functionality to this is SQL's update command. In some situations, this is ideal and can be leveraged for some
+truly dynamic updates. However, when you want to change the value of one, or a few fields, you must use MongoDB's *$set* operator. 
+Go ahead and run this update to reset the lost fields:
+#+BEGIN_SRC
+db.unicorns.update({weight: 590}, {$set: {
+    name: 'Roooooodles',
+    dob: new Date(1979, 7, 18, 18, 44),
+    loves: ['apple'],
+    gender: 'm',
+    vampires: 99}})
+#+END_SRC
+
+This won't overwrite the new weight since we didn't specify it. Now if we execute:
+#+BEGIN_SRC
+db.unicorns.find({name: 'Roooooodles'})
+#+END_SRC
+
+We get the expected result. Therefore, the correct way to have updated the weight  in the first place is:
+#+BEGIN_SRC
+db.unicorns.update({name:'Roooooodles'},
+    {$set: {weight: 590}})
+#+END_SRC
+
+### Update Operators
+In addition to *$set*, we can leverage other operators to do some nifty things. All update operators work on fields - so your
+entire document won't be wiped out. For example, the *$inc* operator is used to increment a field by a certain positive or
+negative amount. If Pilot was incorrectly awarded a couple vampire kills, we could correct the mistake by executing:
+
+#+BEGIN_SRC:
+db.unicorns.update({name: 'Pilot'},
+    {$inc: {vampires: -2}})
+#+END_SRC
+
+If Aurora suddenly developed a sweet tooth, we could add a value to her loves field via the *$push* operator:
+
+#+BEGIN_SRC:
+db.unicorns.update({name: 'Aurora'},
+   {$push: {loves: 'sugar'}})
+#+END_SRC
+
+*** Upserts
+One of the more pleasant surprises for using update is that it fully supports upserts. An upsert updates the document if found or insert
+it if not. Upserts are handy to have in certain situations and when you run into one, you'll know it. 
+To enable upserting we pass a third parameter to update *{ upsert:true }*
+
+A mundane example is a hit counter for a website. If we wanted to keep an aggregate count in real time, we'd have to see if the record 
+already existed for the page, and based on that decide to run an update or insert. With the upsert option omitted ( or set to false ), 
+executing the following won't do anything:
+
+#+BEGIN_SRC
+db.hits.update({page: 'unicorns'},
+    {$inc: {hits: 1}});
+db.hits.find()
+#+END_SRC
+
+
+However, if we add the upsert option, the result are quite different:
+#+BEGIN_SRC
+db.hits.update({page: 'unicorns'},
+    {$inc: {hits: 1}}, { upsert: true});
+db.hits.find();
+#+END_SRC
+
+**** Multiple Updates
+The final surprise update has to offer is that, by default, it'll update a single document. So far, for the examples we've
+looked at, this might seem logical. However , if you executed something like:
+
+#+BEGIN_SRC
+db.unicorns.update({},
+    {$set: { vaccinated: true }});
+db.unicorns.find({vaccinated: true});
+#+END_SRC
+
+You might expect to find all of your precious unicorns to be vaccinated. To get the behavior you desire, the *multi* option
+must be set to true:
+
+#+BEGIN_SRC
+db.unicorns.update({},
+    {$set: {vaccinated: true }},
+    {multi: true });
+db.unicorns.find({vaccinated: true});
+#+END_SRC
+
+*** In this chapter ( update/ upsert )
+This chapter concluded our introduction to the basic CRUD operations available against a collection. We looked at update in detail
+and observed three interesting behaviors. First, if you pass it a document without update operators, MongoDB's update will replace
+the existing document. Because of this, normally you will see *$set* operator ( or one of the many other available operators that
+modify the document). Secondly, update supports an intuitive upsert option which is particularly useful when you don't if the document
+already exists. Finally, by default, update updates only the first matching document, so use the multi option when you want to update
+all matching documents.
+
+
+*** Mastering Find
+chapter 1 provided a superficial look at the find command. There's more to find than understanding selectors though. We already 
+mentioned that the result from find is a cursor. We'll now look at exactly what this means in more detail.
+
+**** Field Selection
+Before we jump into cursors, you should know that find takes a second optional parameter called *projection*. This parameter is
+the list of fields we want to retrieve or exclude. For example , we can get all of the unicorns'names without getting back other
+fields by executing:
+
+#+BEGIN_SRC:
+db.unicorns.find({}, {name: 1});
+#+END_SRC
+
+**** Ordering
+A few times now I've mentioned that find returns a cursor whose execution is delayed until needed. However, what you've no doubt
+observed from the shell is that find executes immediately. This is a behavior of the shell only. We can observe the true behavior 
+of cursors by looking at one of the methods we can chain to find. The first that we'll look at is *sort*. We specify the fields the
+fields we want to sort on a JSON document, using 1 for ascending and -1 for descending.
+
+For example:
+
+
+#+BEGIN_SRC:
+// heavies unicorns first
+db.unicorns.find().sort({weight: -1})
+
+// by unicorn name then vampire kills:
+db.unicorns.find().sort({name: 1, vampires: -1})
+
+#+END_SRC
+
+As with a relational database,  MongoDB can use an index for sorting. We'll look at indexes in more detail later on.
+However, you should know that MongoDB limits the size of your sort without an index. That is, if you try to sort a 
+very large result set which can't use an index, you'll get an error. Some people see this as a limitation. In truth, I wish
+more databases had the capability to refuse to run unoptimized queries. ( I won't turn every MongoDB drawback into a 
+positive, but I've seen enough poorly optimized databases that I sincerely wish they had a strict-mode.)
+
+**** Paging
+Paging results can be accomplished via *limit* and *skip* cursor methods. To get the second and third heaviest unicorn,
+we could do:
+
+#+BEGIN_SRC
+db.unicorns.find()
+    .sort({weight: -1})
+    .limit(2)
+    .skip(1)
+#+END_SRC
+
+Using *limit* in conjunction with *sort*, can be a way to avoid running into problems when sorting on *non-indexed* fields.
+
+**** count
+The shell makes it possible to execute a count directly on a collection, such as:
+#+BEGIN_SRC
+db.unicorns.count({vampires: {$gt: 50 }})
+#+END_SRC
+
+In reality, count is actually  a cursor method, the shell simply provides a shortcut. Drivers which don't provide such a
+shortcut need to be executed like this ( which will also work in the shell ):
+#+BEGIN_SRC
+db.unicorns.find({vampires: {$gt: 50}}).count()
+#+END_SRC
+
+**** In this Chapter
+Using find and cursors is a straightforward proposition. There are a few additional commands that we'll either cover in later
+chapters or which only serve edge cases, but , by now, you should be getting pretty comfortable working in the mongo shell and understanding 
+the fundamentals for MongoDB.
+
+
+*** Data Modeling.
+Let's shift gears and have a more abstract conversation about MongoDB. Explaining a few new terms and some new syntax is a trivial task.
+Having a conversation about modeling with a new paradigm isn't as easy. The truth is that most of us are still finding out what works and
+what doesn't when it comes to modeling with these new technologies.
+It's a conversation we can start having, but ultimately you'll have to practice and learn on real code.
+
+Out of all NoSQL databases, document-oriented databases are probably the most similar to relational databases -at least when it comes to 
+modeling. However, the differences that exist are important
+
+***** No joins
+The first and most fundamental difference that you'll need to get comfortable with is *MongoDB's* lack of *joins*. I don't know the 
+specific reason why some type of join syntax isn't supported in MongoDB, but I do know that joins are generally seen as non-scalable.
+That is , once you start to split your data horizontally, you end up performing your joins on the client(the application server) anyway.
+Regardless of the reason, the fact remains that data is *relational*, and MongoDB doesn't support joins.
+
+Without knowing anything else, to live in a join-less world, we have to do joins ourselves within our applications code. Essentially we 
+need to issue a second query to find the relevant data in a second collection. Setting our data up isn't any different than declaring a 
+foreign key in a relational database. Let's give a little less focus to our beautiful unicorns and a bit more time to our employees.
+The first thing we'll do is create an employee( I'm providing an explicit _id so that we can build coherent examples)
+#+BEGIN_SRC:
+db.employees.insert({_id: ObjectId(
+"4d85c7039ab0fd70a117d730"),
+name: 'Leto'})
+#+END_SRC
+
+

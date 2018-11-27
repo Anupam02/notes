@@ -1,0 +1,104 @@
+?? can we return from a bash function ??
+which bash > hello-world.sh
+chmod +x hello-world.sh
+./hello-world.sh
+-- The above lines help in putting location of bash ( generally /bin/bash to
+-- the top of a file , which helps file command to identify the type of file
+-- try with $ file hello-world.sh  ( with and without #!/bin/bash )
+
+- with echo , if it's a environment variable
+echo $BASH_VERSION 
+- if its a command
+echo $(whoami)
+
+-- Never name your private variables using UPPERCASE characters. This is 
+-- because uppercase variable names are reserved for internal shell 
+-- variables, and you run a risk of overwriting them. This may lead to the
+-- dysfunctional or misbehaving script.
+
+-- Variables can also be used directly on the terminals command line.
+   $>  a=4              ( without space )
+   $>  b=8              ( without space )
+   $> echo $a
+   $> echo $b
+   $> echo $a + $b      
+      4 + 8
+   $> echo [$a + $b]
+     [4 + 8]
+   $> echo $[$a + $b]
+     12
+
+-- concatenation with the variable names
+  $> echo $USER
+    anupam
+  $> echo ${USER}_otherstring // it is called parameter expansion
+    anupam_otherstring
+
+-- Input , Output and Error Redirections
+   Normally commands executed on GNU/Linux command line either produce 
+   output, require input or throw and error message. This is a fundamental
+   concept for shell scripting as well as for working with GNU/Linux's 
+   command line in general.
+
+--??? echo $? >>> isn't the output is file descriptor <<< 
+  Every time, you execute a command, three possible outcomes might happen. 
+  The first scenario is that the command will produce an expected output,
+  second the command will generate an error, and lastly , your command 
+  might not produce any output at all.
+
+-- The differenc between stdout and stderr output is an essential concept
+  as it allows us to a threat, that is , to redirect each output seperately.
+  The > notation is used to redirect stdout to a file whereas 2> notation is
+  used to redirect stderr and &> is used to redirect both stdout and stderr.
+ 
+  >    -   redirect stdout  ( standard output )
+  2>   - redirect stderr ( standard error )
+  &>   - redirect both ( stdout & stderr ) 
+
+Quick Tip:
+   When unsure whether your command produced stdout or stderr try to 
+   redirect its output. For example, if you are able to redirect its output
+   successfully to a file with 2> notation, it means that your command 
+   produced stderr. Conversely, successfully redirecting command output 
+   with > notation is indicating that your command produced stdout. 
+
+-- Now that we have a basic understand of the output redirection we can
+   eliminate this unwanted stderr message by redirecting it  with 2> 
+   notation to /dev/null. Imagine /dev/null as a data sink, which discards
+   any data redirected to it. 
+
+-- apart from stdout and stderr descriptors bash shell also features input
+   descriptor name stdin. Generally, terminal input comes from a keyboard.
+   Any keystroke you type is accepted as stdin.
+
+-- The alternative method is to accept command input from a file using <
+   notation. Consider the following example where we first feed the cat
+   command from the keyboard and redirecting the output to file.txt, Later
+  , we allow cat command to read the input from file.txt using < notation.
+   ( my intuition is that every command with a command line argument ( or simply argument) is a input redirection. 
+
+-- man find , find --searches / finds the file in a folder structure
+
+
+-- Numeric and String Comparison
+                            Numeric Comparison          String Comparison
+less than                   -lt                         <
+greater than                -gt                         >
+equal                       -eq                         =
+not equal                   -ne                         !=
+less or equal               -le                         N/A
+greater or equal            -ge                         N/A
+
+ Quick Tip:
+   Comparing strins with integers using numeric comparison operators will
+   result in the error:integer expression expected. When comparing values,
+   you may want to use echo command first to confirm that your variables 
+   hold expected values before using them as part of the comparison operation.
+
+--- grep -v ( -v option is for inverse match )
+
+if [ -z $1 ];
+--- the -z bash option in combination with conditional if statement is to 
+   check whether positional parameter $1i contains any value. -z simply
+   returns true if the length of the string which in our case is $1 is zero.
+   If this is the case, we set $user variable to a current user's name.

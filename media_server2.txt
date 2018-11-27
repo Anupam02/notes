@@ -1,0 +1,7 @@
+Task
+- how python does imports , do a quick check
+- @classmethod - https://stackoverflow.com/questions/12179271/meaning-of-classmethod-and-staticmethod-for-beginner
+  + how C++ uses overloading for this concept explained in SO answer
+  + get the explanation by C++ guru
+  + staticmethod vs classmethod in python
+  + what is factory
